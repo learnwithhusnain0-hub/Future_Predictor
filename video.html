@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Future Revealed - Future Scanner</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0a0a0f;
+            color: #f0f0f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Background effects */
+        .bg-effects {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            background-color: rgba(0, 150, 255, 0.3);
+            border-radius: 50%;
+            animation: float 10s infinite linear;
+        }
+
+        /* Video Container */
+        .video-container {
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeIn 1s ease;
+        }
+
+        .result-header {
+            text-align: center;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+
+        .result-title {
+            font-size: 2.8rem;
+            background: linear-gradient(90deg, #00ffff, #0080ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+
+        .result-subtitle {
+            font-size: 1.4rem;
+            color: #a0a0ff;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            overflow: hidden;
+            border-radius: 15px;
+            box-shadow: 0 0 40px rgba(0, 150, 255, 0.5);
+            margin-bottom: 30px;
+            background: #000;
+        }
+
+        .video-wrapper video {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 15px;
+        }
+
+        .video-controls {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .control-button {
+            background: linear-gradient(45deg, #0080ff, #00ffff);
+            border: none;
+            padding: 14px 28px;
+            font-size: 1.2rem;
+            color: #000;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+        }
+
+        .rescan-button {
+            background: linear-gradient(45deg, #ff0080, #ff00ff);
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+            margin-top: 40px;
+            padding: 16px 35px;
+            font-size: 1.3rem;
+        }
+
+        .rescan-button:hover {
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.8);
+        }
+
+        .back-home-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 40, 80, 0.7);
+            border: 1px solid #0080ff;
+            color: #00ffff;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .back-home-button:hover {
+            background: rgba(0, 60, 120, 0.9);
+            transform: translateX(-5px);
+        }
+
+        .video-info {
+            background: rgba(0, 30, 60, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+            width: 100%;
+            max-width: 800px;
+            border-left: 4px solid #00aaff;
+        }
+
+        .video-info h3 {
+            color: #00ffff;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .video-info p {
+            color: #a0a0ff;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        /* Loading animation */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a0f;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-spinner {
+            width: 80px;
+            height: 80px;
+            border: 5px solid #0080ff;
+            border-top: 5px solid #00ffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        .loading-text {
+            font-size: 1.4rem;
+            color: #00ffff;
+        }
+
+        /* Progress bar */
+        .video-progress {
+            width: 100%;
+            height: 5px;
+            background: #003366;
+            margin-top: 10px;
+            border-radius: 3px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .video-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #0080ff, #00ffff);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        /* Error message */
+        .error-message {
+            background: rgba(255, 50, 50, 0.2);
+            border: 1px solid #ff4444;
+            color: #ff8888;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-1000px) rotate(720deg); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .result-title {
+                font-size: 2.2rem;
+            }
+            
+            .result-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .video-wrapper {
+                max-width: 95%;
+            }
+            
+            .video-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .control-button {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+            
+            .rescan-button {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .result-title {
+                font-size: 1.8rem;
+            }
+            
+            .result-subtitle {
+                font-size: 1rem;
+            }
+            
+            .control-button {
+                padding: 12px 20px;
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading Your Future Prediction...</div>
+        <div class="loading-text" id="loadingDetails" style="font-size: 1rem; margin-top: 10px;">
+            Initializing video stream from secure server...
+        </div>
+    </div>
+
+    <!-- Background Effects -->
+    <div class="bg-effects" id="bgEffects"></div>
+    
+    <!-- Back Button -->
+    <button class="back-home-button" id="backHomeButton">
+        <i class="fas fa-home"></i> Home
+    </button>
+    
+    <!-- Main Container -->
+    <div class="container">
+        <div class="video-container" id="videoContainer" style="display: none;">
+            <div class="result-header">
+                <h1 class="result-title">Your Future Revealed</h1>
+                <p class="result-subtitle">Based on your biometric analysis, here is your predicted future timeline</p>
+            </div>
+            
+            <!-- DIRECT VIDEO FROM GOOGLE DRIVE -->
+            <div class="video-wrapper">
+                <video id="futureVideo" controls playsinline>
+                    <!-- Your Google Drive Video -->
+                    <source src="https://drive.google.com/uc?export=download&id=1zX681fatJPKlT5sOEcgaXL-x_pmrunNa" type="video/mp4">
+                    Your browser does not support HTML5 video.
+                </video>
+                <div class="video-progress" id="videoProgress">
+                    <div class="video-progress-bar" id="videoProgressBar"></div>
+                </div>
+            </div>
+            
+            <div class="error-message" id="errorMessage">
+                <i class="fas fa-exclamation-triangle"></i> Video loading failed. Please check your internet connection and try again.
+            </div>
+            
+            <div class="video-controls">
+                <button class="control-button" id="playButton">
+                    <i class="fas fa-play"></i> Play Video
+                </button>
+                <button class="control-button" id="unmuteButton">
+                    <i class="fas fa-volume-mute"></i> Unmute Audio
+                </button>
+                <button class="control-button" id="replayButton">
+                    <i class="fas fa-redo"></i> Replay Video
+                </button>
+            </div>
+            
+            <div class="video-info">
+                <h3><i class="fas fa-info-circle"></i> About Your Future Prediction</h3>
+                <p>This prediction is based on a comprehensive analysis of your biometric data, including fingerprint patterns, genetic markers, and life energy frequencies detected during the scanning process.</p>
+                <p>The video shows your most probable future timeline calculated by our quantum prediction algorithm. Remember, the future is not fixed - your choices can always change the outcome.</p>
+            </div>
+            
+            <button class="control-button rescan-button" id="rescanButton">
+                <i class="fas fa-fingerprint"></i> Scan Again for New Prediction
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const loadingScreen = document.getElementById('loadingScreen');
+        const loadingDetails = document.getElementById('loadingDetails');
+        const videoContainer = document.getElementById('videoContainer');
+        const futureVideo = document.getElementById('futureVideo');
+        const playButton = document.getElementById('playButton');
+        const unmuteButton = document.getElementById('unmuteButton');
+        const replayButton = document.getElementById('replayButton');
+        const rescanButton = document.getElementById('rescanButton');
+        const backHomeButton = document.getElementById('backHomeButton');
+        const videoProgress = document.getElementById('videoProgress');
+        const videoProgressBar = document.getElementById('videoProgressBar');
+        const errorMessage = document.getElementById('errorMessage');
+        const bgEffects = document.getElementById('bgEffects');
+
+        // Video loading states
+        let isVideoLoaded = false;
+        let isVideoPlaying = false;
+
+        // Create background particles
+        function createParticles() {
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                const size = Math.random() * 5 + 1;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                
+                particle.style.animationDuration = `${Math.random() * 20 + 10}s`;
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                
+                bgEffects.appendChild(particle);
+            }
+        }
+
+        // Update loading text
+        function updateLoadingText(text) {
+            if (loadingDetails) {
+                loadingDetails.textContent = text;
+            }
+        }
+
+        // Hide loading screen
+        function hideLoadingScreen() {
+            loadingScreen.style.opacity = '0';
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+                videoContainer.style.display = 'flex';
+            }, 500);
+        }
+
+        // Show error
+        function showError() {
+            errorMessage.style.display = 'block';
+            hideLoadingScreen();
+        }
+
+        // Initialize video
+        function initializeVideo() {
+            updateLoadingText('Connecting to secure video server...');
+            
+            // Set video source
+            futureVideo.src = 'https://drive.google.com/uc?export=download&id=1zX681fatJPKlT5sOEcgaXL-x_pmrunNa';
+            
+            // Video event listeners
+            futureVideo.addEventListener('loadeddata', function() {
+                updateLoadingText('Video loaded. Preparing playback...');
+                isVideoLoaded = true;
+                videoProgress.style.display = 'block';
+                
+                // Auto-play after load (muted for autoplay policy)
+                setTimeout(() => {
+                    futureVideo.muted = true; // Start muted
+                    futureVideo.play().then(() => {
+                        updateLoadingText('Playing your future prediction...');
+                        isVideoPlaying = true;
+                        playButton.innerHTML = '<i class="fas fa-pause"></i> Pause Video';
+                        setTimeout(hideLoadingScreen, 1000);
+                    }).catch(e => {
+                        console.log('Autoplay prevented:', e);
+                        updateLoadingText('Click Play button to start...');
+                        hideLoadingScreen();
+                    });
+                }, 500);
+            });
+            
+            futureVideo.addEventListener('error', function(e) {
+                console.error('Video error:', e);
+                updateLoadingText('Error loading video. Trying alternative method...');
+                
+                // Try alternative Google Drive format
+                setTimeout(() => {
+                    futureVideo.src = 'https://docs.google.com/uc?export=download&id=1zX681fatJPKlT5sOEcgaXL-x_pmrunNa';
+                }, 2000);
+                
+                // If still error after 5 seconds
+                setTimeout(() => {
+                    if (!isVideoLoaded) {
+                        showError();
+                    }
+                }, 5000);
+            });
+            
+            futureVideo.addEventListener('timeupdate', function() {
+                if (futureVideo.duration > 0) {
+                    const percent = (futureVideo.currentTime / futureVideo.duration) * 100;
+                    videoProgressBar.style.width = percent + '%';
+                }
+            });
+            
+            futureVideo.addEventListener('ended', function() {
+                playButton.innerHTML = '<i class="fas fa-play"></i> Play Again';
+            });
+        }
+
+        // Video controls
+        playButton.addEventListener('click', function() {
+            if (futureVideo.paused) {
+                futureVideo.play();
+                playButton.innerHTML = '<i class="fas fa-pause"></i> Pause Video';
+                isVideoPlaying = true;
+            } else {
+                futureVideo.pause();
+                playButton.innerHTML = '<i class="fas fa-play"></i> Play Video';
+                isVideoPlaying = false;
+            }
+        });
+        
+        unmuteButton.addEventListener('click', function() {
+            if (futureVideo.muted) {
+                futureVideo.muted = false;
+                unmuteButton.innerHTML = '<i class="fas fa-volume-up"></i> Mute Audio';
+            } else {
+                futureVideo.muted = true;
+                unmuteButton.innerHTML = '<i class="fas fa-volume-mute"></i> Unmute Audio';
+            }
+        });
+        
+        replayButton.addEventListener('click', function() {
+            futureVideo.currentTime = 0;
+            futureVideo.play();
+            playButton.innerHTML = '<i class="fas fa-pause"></i> Pause Video';
+            replayButton.innerHTML = '<i class="fas fa-check"></i> Restarted';
+            setTimeout(() => {
+                replayButton.innerHTML = '<i class="fas fa-redo"></i> Replay Video';
+            }, 1500);
+        });
+        
+        // Rescan button
+        rescanButton.addEventListener('click', function() {
+            const clickSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3');
+            clickSound.volume = 0.3;
+            clickSound.play().catch(e => console.log("Audio play failed:", e));
+            
+            rescanButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Returning to Scanner...';
+            rescanButton.disabled = true;
+            
+            setTimeout(() => {
+                window.location.href = 'scanner.html';
+            }, 1000);
+        });
+        
+        // Back home button
+        backHomeButton.addEventListener('click', function() {
+            const clickSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3');
+            clickSound.volume = 0.3;
+            clickSound.play().catch(e => console.log("Audio play failed:", e));
+            
+            window.location.href = 'index.html';
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            
+            // Start video initialization after a short delay
+            setTimeout(() => {
+                initializeVideo();
+            }, 1000);
+            
+            // Fallback: hide loading after 8 seconds
+            setTimeout(() => {
+                if (!isVideoLoaded) {
+                    hideLoadingScreen();
+                    showError();
+                }
+            }, 8000);
+        });
+        
+        // User interaction to help with autoplay
+        document.addEventListener('click', function() {
+            if (!isVideoPlaying && isVideoLoaded && futureVideo.paused) {
+                futureVideo.play().then(() => {
+                    playButton.innerHTML = '<i class="fas fa-pause"></i> Pause Video';
+                    isVideoPlaying = true;
+                });
+            }
+        });
+    </script>
+</body>
+</html>
