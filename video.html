@@ -93,10 +93,10 @@
             background: #000;
         }
 
-        .video-wrapper video {
+        .video-wrapper iframe {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            border: none;
             border-radius: 15px;
         }
 
@@ -216,25 +216,14 @@
             color: #00ffff;
         }
 
-        .direct-play-button {
-            margin-top: 20px;
-            background: linear-gradient(45deg, #ff8800, #ffaa00);
-            border: none;
-            padding: 12px 25px;
-            font-size: 1.1rem;
-            color: #000;
-            font-weight: bold;
-            border-radius: 25px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .direct-play-button:hover {
-            transform: scale(1.05);
-            background: linear-gradient(45deg, #ffaa00, #ffcc00);
+        .autoplay-status {
+            background: rgba(0, 255, 100, 0.1);
+            border: 1px solid #00ff88;
+            color: #00ffaa;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 0.9rem;
         }
 
         @keyframes fadeIn {
@@ -255,22 +244,26 @@
         @media (max-width: 768px) {
             .result-title { font-size: 2.2rem; }
             .result-subtitle { font-size: 1.2rem; }
-            .video-wrapper { height: 400px; max-width: 95%; }
+            .video-wrapper { 
+                height: 400px; 
+                max-width: 95%; 
+            }
             .video-controls { flex-direction: column; }
             .control-button { width: 100%; max-width: 300px; }
+        }
+
+        @media (max-width: 480px) {
+            .video-wrapper { height: 300px; }
         }
     </style>
 </head>
 <body>
     <div class="loading-screen" id="loadingScreen">
         <div class="loading-spinner"></div>
-        <div class="loading-text">Loading Future Prediction...</div>
+        <div class="loading-text">Loading Your Future Prediction...</div>
         <div id="loadingDetails" style="color: #a0a0ff; margin-top: 10px;">
-            Initializing video stream...
+            Connecting to Streamable...
         </div>
-        <button class="direct-play-button" id="directPlayBtn" style="display: none;">
-            <i class="fas fa-play-circle"></i> Click to Play Video
-        </button>
     </div>
 
     <div class="bg-effects" id="bgEffects"></div>
@@ -286,15 +279,18 @@
                 <p class="result-subtitle">Based on your biometric analysis, here is your predicted future timeline</p>
             </div>
             
-            <!-- VIDEO PLAYER -->
+            <!-- STREAMABLE VIDEO IFRAME -->
             <div class="video-wrapper">
-                <video id="futureVideo" autoplay muted playsinline controls>
-                    <!-- TRY DIFFERENT LINKS HERE -->
-                    <source id="videoSource" 
-                            src="https://github.com/learnwithhusnain0-hub/Future_Predictor/raw/main/are%20baba%20meme%20template%20Round2hell%20__meme%20_template%20_roadto10k%20_round2hell%20_download%20link%F0%9F%91%87%28720P_HD%29.mp4" 
-                            type="video/mp4">
-                    Your browser does not support HTML5 video.
-                </video>
+                <iframe id="futureVideo" 
+                        src="https://streamable.com/e/6lvq3n?autoplay=1&muted=1&loop=0&controls=1" 
+                        frameborder="0" 
+                        allow="autoplay; encrypted-media; fullscreen" 
+                        allowfullscreen>
+                </iframe>
+            </div>
+            
+            <div class="autoplay-status">
+                <i class="fas fa-check-circle"></i> Video is auto-playing (muted). Click unmute button for audio.
             </div>
             
             <div class="video-controls">
@@ -304,23 +300,19 @@
                 <button class="control-button" id="replayButton">
                     <i class="fas fa-redo"></i> Replay Video
                 </button>
-                <button class="control-button" id="tryAlternativeBtn">
-                    <i class="fas fa-sync-alt"></i> Try Alternative Link
+                <button class="control-button" id="fullscreenButton">
+                    <i class="fas fa-expand"></i> Fullscreen
                 </button>
             </div>
             
             <div class="video-info">
-                <h3><i class="fas fa-info-circle"></i> Video Playback Info</h3>
-                <p>If video doesn't play automatically, try:</p>
-                <ol style="color: #a0a0ff; padding-left: 20px; margin: 10px 0;">
-                    <li>Click "Try Alternative Link" button</li>
-                    <li>Click the play button in video controls</li>
-                    <li>Refresh the page</li>
-                </ol>
+                <h3><i class="fas fa-info-circle"></i> About Your Future Prediction</h3>
+                <p>This prediction is generated using advanced biometric analysis. The video shows your most probable future timeline based on the data collected during the scanning process.</p>
+                <p><strong>Streamable Hosting:</strong> Video is hosted on Streamable for reliable playback and auto-play functionality across all devices.</p>
             </div>
             
             <button class="control-button rescan-button" id="rescanButton">
-                <i class="fas fa-fingerprint"></i> Scan Again
+                <i class="fas fa-fingerprint"></i> Scan Again for New Prediction
             </button>
         </div>
     </div>
@@ -331,23 +323,12 @@
         const loadingDetails = document.getElementById('loadingDetails');
         const videoContainer = document.getElementById('videoContainer');
         const futureVideo = document.getElementById('futureVideo');
-        const videoSource = document.getElementById('videoSource');
         const unmuteButton = document.getElementById('unmuteButton');
         const replayButton = document.getElementById('replayButton');
-        const tryAlternativeBtn = document.getElementById('tryAlternativeBtn');
+        const fullscreenButton = document.getElementById('fullscreenButton');
         const rescanButton = document.getElementById('rescanButton');
         const backHomeButton = document.getElementById('backHomeButton');
-        const directPlayBtn = document.getElementById('directPlayBtn');
         const bgEffects = document.getElementById('bgEffects');
-
-        // Different video links to try
-        const videoLinks = [
-            "https://github.com/learnwithhusnain0-hub/Future_Predictor/raw/main/are%20baba%20meme%20template%20Round2hell%20__meme%20_template%20_roadto10k%20_round2hell%20_download%20link%F0%9F%91%87%28720P_HD%29.mp4",
-            "https://raw.githubusercontent.com/learnwithhusnain0-hub/Future_Predictor/main/are%20baba%20meme%20template%20Round2hell%20__meme%20_template%20_roadto10k%20_round2hell%20_download%20link%F0%9F%91%87%28720P_HD%29.mp4",
-            "https://github.com/learnwithhusnain0-hub/Future_Predictor/raw/52af8b6bee8d43f9b205e0837dad308d2815ffda/are%20baba%20meme%20template%20Round2hell%20__meme%20_template%20_roadto10k%20_round2hell%20_download%20link%F0%9F%91%87%28720P_HD%29.mp4"
-        ];
-        
-        let currentLinkIndex = 0;
 
         // Create particles
         function createParticles() {
@@ -367,121 +348,116 @@
 
         // Hide loading screen
         function hideLoadingScreen() {
-            loadingScreen.style.opacity = '0';
             setTimeout(() => {
-                loadingScreen.style.display = 'none';
-                videoContainer.style.display = 'flex';
-            }, 500);
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                    videoContainer.style.display = 'flex';
+                }, 500);
+            }, 2000);
         }
 
-        // Try to play video
-        function playVideo() {
-            loadingDetails.textContent = 'Attempting to play video...';
-            
-            // Set video source
-            videoSource.src = videoLinks[currentLinkIndex];
-            futureVideo.load();
-            
-            // Try autoplay
-            futureVideo.muted = true;
-            const playPromise = futureVideo.play();
-            
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    console.log('Video playing successfully');
-                    loadingDetails.textContent = 'Video playing...';
-                    directPlayBtn.style.display = 'none';
-                    setTimeout(hideLoadingScreen, 1000);
-                }).catch(error => {
-                    console.log('Autoplay prevented:', error);
-                    loadingDetails.textContent = 'Click play button below';
-                    directPlayBtn.style.display = 'block';
-                    hideLoadingScreen();
-                });
+        // Streamable unmute function
+        function unmuteStreamable() {
+            // Streamable iframe ke andar unmute karna
+            try {
+                // Streamable player ko message bhejna
+                const iframe = document.getElementById('futureVideo');
+                iframe.contentWindow.postMessage('{"method":"setVolume","value":1}', '*');
+                
+                unmuteButton.innerHTML = '<i class="fas fa-volume-up"></i> Audio Unmuted';
+                setTimeout(() => {
+                    unmuteButton.innerHTML = '<i class="fas fa-volume-up"></i> Mute Audio';
+                }, 2000);
+            } catch (e) {
+                // Alternative method
+                window.open('https://streamable.com/6lvq3n', '_blank');
             }
         }
 
-        // Try alternative link
-        function tryAlternativeLink() {
-            currentLinkIndex = (currentLinkIndex + 1) % videoLinks.length;
-            loadingDetails.textContent = `Trying link ${currentLinkIndex + 1} of ${videoLinks.length}...`;
-            tryAlternativeBtn.innerHTML = `<i class="fas fa-sync-alt fa-spin"></i> Trying...`;
-            
-            videoSource.src = videoLinks[currentLinkIndex];
-            futureVideo.load();
-            
-            setTimeout(() => {
-                futureVideo.play().then(() => {
-                    tryAlternativeBtn.innerHTML = `<i class="fas fa-check"></i> Link ${currentLinkIndex + 1} Working`;
-                    setTimeout(() => {
-                        tryAlternativeBtn.innerHTML = `<i class="fas fa-sync-alt"></i> Try Alternative Link`;
-                    }, 2000);
-                }).catch(e => {
-                    tryAlternativeBtn.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Try Next Link`;
-                });
-            }, 1000);
+        // Streamable replay function
+        function replayStreamable() {
+            try {
+                const iframe = document.getElementById('futureVideo');
+                iframe.contentWindow.postMessage('{"method":"seekTo","value":0}', '*');
+                iframe.contentWindow.postMessage('{"method":"play"}', '*');
+                
+                replayButton.innerHTML = '<i class="fas fa-check"></i> Video Restarted';
+                setTimeout(() => {
+                    replayButton.innerHTML = '<i class="fas fa-redo"></i> Replay Video';
+                }, 1500);
+            } catch (e) {
+                // Reload iframe
+                futureVideo.src = futureVideo.src;
+            }
         }
 
         // Event Listeners
-        futureVideo.addEventListener('loadeddata', function() {
-            console.log('Video loaded');
-        });
-
-        futureVideo.addEventListener('error', function(e) {
-            console.error('Video error:', e);
-            loadingDetails.textContent = 'Error loading video. Trying alternative...';
-            setTimeout(tryAlternativeLink, 1000);
-        });
-
-        directPlayBtn.addEventListener('click', function() {
-            futureVideo.play();
-            directPlayBtn.style.display = 'none';
-        });
-
-        unmuteButton.addEventListener('click', function() {
-            futureVideo.muted = !futureVideo.muted;
-            unmuteButton.innerHTML = futureVideo.muted ? 
-                '<i class="fas fa-volume-mute"></i> Unmute Audio' : 
-                '<i class="fas fa-volume-up"></i> Mute Audio';
-        });
-
-        replayButton.addEventListener('click', function() {
-            futureVideo.currentTime = 0;
-            futureVideo.play();
-            replayButton.innerHTML = '<i class="fas fa-check"></i> Restarted';
+        unmuteButton.addEventListener('click', unmuteStreamable);
+        
+        replayButton.addEventListener('click', replayStreamable);
+        
+        fullscreenButton.addEventListener('click', function() {
+            const iframe = document.getElementById('futureVideo');
+            if (iframe.requestFullscreen) {
+                iframe.requestFullscreen();
+            } else if (iframe.webkitRequestFullscreen) {
+                iframe.webkitRequestFullscreen();
+            }
+            
+            fullscreenButton.innerHTML = '<i class="fas fa-compress"></i> Exit Fullscreen';
             setTimeout(() => {
-                replayButton.innerHTML = '<i class="fas fa-redo"></i> Replay Video';
-            }, 1500);
+                fullscreenButton.innerHTML = '<i class="fas fa-expand"></i> Fullscreen';
+            }, 3000);
         });
-
-        tryAlternativeBtn.addEventListener('click', tryAlternativeLink);
-
+        
         rescanButton.addEventListener('click', function() {
+            const clickSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3');
+            clickSound.volume = 0.3;
+            clickSound.play().catch(e => console.log("Audio play failed:", e));
+            
             rescanButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Returning...';
+            rescanButton.disabled = true;
+            
             setTimeout(() => {
                 window.location.href = 'scanner.html';
             }, 1000);
         });
-
+        
         backHomeButton.addEventListener('click', function() {
             window.location.href = 'index.html';
+        });
+
+        // Streamable iframe load event
+        futureVideo.addEventListener('load', function() {
+            console.log('Streamable iframe loaded');
+            loadingDetails.textContent = 'Video loaded. Auto-playing...';
+            hideLoadingScreen();
         });
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             createParticles();
             
-            // Start video loading
-            setTimeout(playVideo, 1000);
+            // Streamable URL with autoplay parameters
+            const streamableUrl = "https://streamable.com/e/6lvq3n?autoplay=1&muted=1&loop=0&controls=1";
+            futureVideo.src = streamableUrl;
             
             // Fallback timeout
             setTimeout(() => {
                 if (loadingScreen.style.display !== 'none') {
                     hideLoadingScreen();
-                    directPlayBtn.style.display = 'block';
                 }
-            }, 8000);
+            }, 5000);
+        });
+
+        // Listen for messages from Streamable iframe
+        window.addEventListener('message', function(event) {
+            // Streamable se messages handle karna
+            if (event.data && event.data.event === 'streamable.ready') {
+                console.log('Streamable player ready');
+            }
         });
     </script>
 </body>
-    </html>
+</html>
